@@ -32,28 +32,10 @@ mkdir -p ~/SageMaker/.theia
 cp ${CONFIG_DIR}/launch.json ${EC2_HOME}/.theia/
 cp ${CONFIG_DIR}/settings.json ${EC2_HOME}/.theia/
 
-###############################
-#
-# UPDATE JUPYTER AND EXTENSIONS
-#
-###############################
-echo CONFIGURING NOTEBOOK SERVER
-source ~/anaconda3/bin/activate JupyterSystemEnv
-
-echo UPGRADING JUPYTERLAB
-# UPGRADE JUPYTERLAB, VOILA, IPYWIDGETS, S3 BROWSER, PYTHON LANGUAGE SERVER, AND SERVER PROXY
-pip install --upgrade pip
-pip install -U jupyterlab 
-pip install -U voila ipywidgets \
-    jupyterlab-s3-browser python-language-server[all]  \
-    python-jsonrpc-server jupyter-lsp \
-    jupyter-server-proxy pylint autopep8 yapf pyflakes pycodestyle
-jupyter labextension update --all
-
-## CONFIGURE JUPYTER PROXY TO MAP TO THE THEIA IDE
-JUPYTER_ENV=~/anaconda3/envs/JupyterSystemEnv
-
-cat >>${JUPYTER_ENV}/etc/jupyter/jupyter_notebook_config.py <<EOC
+#####################################
+### INTEGRATE THEIA IDE WITH JUPYTER PROXY
+#####################################
+cat >>/home/ec2-user/.jupyter/jupyter_notebook_config.py <<EOC
 c.ServerProxy.servers = {
   'theia': {
     'command': ['yarn', '--cwd', '/home/ec2-user/theia', 'start', '/home/ec2-user/SageMaker', '--port', '{port}'],
@@ -64,9 +46,22 @@ c.ServerProxy.servers = {
 }
 EOC
 
+source /home/ec2-user/anaconda3/bin/activate JupyterSystemEnv
+pip install \
+    jupyterlab-s3-browser \
+    python-language-server[all]  \
+    jupyter-lsp \
+    pylint \
+    autopep8 \
+    yapf \
+    pyflakes \
+    pycodestyle
+
 echo INSTALLING LAB EXTENSIONS
-jupyter labextension install @jupyter-voila/jupyterlab-preview jupyterlab-s3-browser @krassowski/jupyterlab-lsp @jupyterlab/server-proxy
-jupyter serverextension enable --py --sys-prefix jupyter_server_proxy
+jupyter labextension install \
+    jupyterlab-s3-browser \
+    @krassowski/jupyterlab-lsp \
+    @jupyterlab/server-proxy
 
 # CONFIGURE JUPYTER LAB DARK MODE
 echo CONFIGURE LAB UI
@@ -77,7 +72,7 @@ cat >~/.jupyter/lab/user-settings/\@jupyterlab/apputils-extension/themes.jupyter
 }
 EOF
 
-source ~/anaconda3/bin/deactivate 
+conda deactivate 
 echo NOTEBOOK CONFIGURATION COMPLETE 
 
 EOP
