@@ -48,7 +48,6 @@ EOC
 
 source /home/ec2-user/anaconda3/bin/activate JupyterSystemEnv
 pip install \
-    jupyterlab-s3-browser \
     python-language-server[all]  \
     jupyter-lsp \
     pylint \
@@ -59,7 +58,6 @@ pip install \
 
 echo INSTALLING LAB EXTENSIONS
 jupyter labextension install \
-    jupyterlab-s3-browser \
     @krassowski/jupyterlab-lsp \
     @jupyterlab/server-proxy
 
